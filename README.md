@@ -8,6 +8,14 @@ Este é um workflow avançado do n8n projetado para automatizar a coleta, análi
 
 O objetivo principal deste protótipo é criar um "Relatório Preditivo de Situação Operacional" que centraliza informações de diversos stakeholders (Armador, Agência Marítima, Receita Federal, Anvisa, Capitania dos Portos) para fornecer uma visão unificada e inteligente das operações. Ele identifica proativamente gargalos, calcula atrasos preditivos e notifica as partes interessadas sobre pontos críticos.
 
+## Tech-demo
+
+https://github.com/user-attachments/assets/296b87ca-6b44-439e-9725-13878cf6e819
+
+## Pitch
+
+https://github.com/user-attachments/assets/acd2482d-d9fb-4890-b7c0-b1087a158533
+
 ## Como Funciona
 
 O fluxo de trabalho é dividido em cinco etapas principais:
