@@ -51,6 +51,13 @@ O núcleo do workflow reside no prompt enviado ao agente de IA. As regras de pro
     * Um **`sumarioExecutivo`** em linguagem natural é gerado com base nos dados calculados.
     * Uma **`push_notification`** curta e direta é criada para ser usada como alerta ou assunto de e-mail.
 
+## Idealização do projeto
+
+
+![Logo](https://imgur.com/a/WPGdjbk)
+
+
+
 ## Estrutura do Relatório de Saída (JSON)
 
 A IA é instruída a retornar um objeto JSON com a seguinte estrutura:
@@ -89,3 +96,4 @@ A IA é instruída a retornar um objeto JSON com a seguinte estrutura:
   "sumarioExecutivo": "string",
   "push_notification": "string"
 }
+
