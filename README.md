@@ -4,6 +4,9 @@
 
 Este é um workflow avançado do n8n projetado para automatizar a coleta, análise e notificação do status operacional de navios em um terminal portuário. O sistema agrega dados de múltiplas fontes, utiliza um agente de Inteligência Artificial para aplicar uma lógica de negócios complexa e gera um relatório preditivo detalhado que é enviado por e-mail e disponibilizado via API.
 
+## TECH DEMO
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Nl6-1KGj-P0?si=_aKIMnM1EGei6CYd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ## Visão Geral
 
 O objetivo principal deste protótipo é criar um "Relatório Preditivo de Situação Operacional" que centraliza informações de diversos stakeholders (Armador, Agência Marítima, Receita Federal, Anvisa, Capitania dos Portos) para fornecer uma visão unificada e inteligente das operações. Ele identifica proativamente gargalos, calcula atrasos preditivos e notifica as partes interessadas sobre pontos críticos.
