@@ -54,7 +54,7 @@ O núcleo do workflow reside no prompt enviado ao agente de IA. As regras de pro
 ## Idealização do projeto
 
 
-![Logo](https://imgur.com/a/WPGdjbk)
+![Projeto](https://i.imgur.com/LBVTG5Z.png)
 
 
 
