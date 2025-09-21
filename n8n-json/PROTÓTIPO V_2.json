@@ -1,0 +1,470 @@
+{
+  "name": "PROTÓTIPO V_2",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        336
+      ],
+      "id": "5be6c771-608f-4354-915a-916591ba4d5b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        560
+      ],
+      "id": "b821731c-a632-47b9-a13c-959074f1c76a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6SDWRvzc9sQJQ48l",
+          "name": "OpenAi account 36"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hackathon.souamigu.org.br/capitania-portos/ {{ $json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        672
+      ],
+      "id": "2453f780-cdab-495b-b6fe-9528859a8b48",
+      "name": "CaptaniaDosPortos"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hackathon.souamigu.org.br/anvisa/ {{ $json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        480
+      ],
+      "id": "094c348e-d208-4913-9969-39d93cfc9129",
+      "name": "Anvisa"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hackathon.souamigu.org.br/receita-federal/ {{ $json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        192
+      ],
+      "id": "d8aa4e0c-eee9-4ed6-b958-10ae21fbe5b5",
+      "name": "ReceitaFederal"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.hackathon.souamigu.org.br/agencia-maritima/ {{ $json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        0
+      ],
+      "id": "81868735-9909-4aa1-99e2-138746264368",
+      "name": "AgenciaMaritima"
+    },
+    {
+      "parameters": {
+        "url": "https://api.hackathon.souamigu.org.br/armador",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -928,
+        336
+      ],
+      "id": "501dd6b1-392b-4cba-a940-0eb130a98f62",
+      "name": "Armador"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        336
+      ],
+      "id": "d439cdf3-29c5-4a75-9a11-f913c62009de",
+      "name": "Split resultado"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "numberInputs": 5,
+        "query": "SELECT * FROM input1 \n  LEFT JOIN input2 ON input1.id = input2.id \n  LEFT JOIN input3 ON input2.id = input3.id\n  LEFT JOIN input4 ON input3.id = input4.id\n  LEFT JOIN input5 ON input4.id = input5.id\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -256,
+        288
+      ],
+      "id": "42a2c3e3-9cb9-49ea-aa1d-49fb9d1110e9",
+      "name": "Combina os dados do navio nas APIs"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst dataAtual = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });\n\n\nconst BuinessPromptLogic = `# PERSONA\nVocê é um agente de IA para processamento de dados logísticos. Sua função é executar um conjunto de regras de negócio sobre um array de registros de navios para gerar um relatório JSON. Você deve operar exclusivamente com os dados fornecidos no JSON de entrada.\n\n# OBJETIVO\nSua missão é processar o array de entrada e gerar um único objeto JSON \"Relatório Preditivo de Situação Operacional\", seguindo rigorosamente as regras abaixo. Todos os campos no formato de saída são obrigatórios.\n\n# DADOS DE ENTRADA\nVocê receberá um array JSON onde cada objeto representa um navio e contém um conjunto consolidado de informações de todos os stakeholders (Agência, Receita, ANVISA, Armador, etc.).\n\n# REGRAS DE PROCESSAMENTO (LÓGICA DE NEGÓCIOS)\n\nVisão Geral:\n\nItere pelo array de entrada. Conte a ocorrência de cada valor único no campo statusOperacao.\n\nO resultado deve ser um objeto para o campo status, onde cada chave é um statusOperacao e seu valor é a contagem.\n\nO campo totalOperacoesTerminal deve ser o número total de objetos no array de entrada.\n\nIdentificação de Pontos Críticos:\n\nDefina a lista de status negativos: [\"pendente\", \"atrasado\", \"cancelado\", \"bloqueado\", \"reprovado\", \"negado\", \"aguardando_autorizacao\", \"problema_fiscal\", \"incompleto\", \"aguardando_berço\", \"documentacao_pendente\", \"esperando_praticagem\", \"emergencia_operacional\", \"pendente_manifesto\"].\n\nCrie uma lista vazia para os pontosCriticos.\n\nItere sobre cada objeto (navio) no array de entrada. Para cada navio, verifique os seguintes campos de status:\n\nstatusDocumentacao (Órgão: \"Agencia-Maritima\")\n\nstatusVerificacao (Órgão: \"Receita-Federal\")\n\nstatusSanitario (Órgão: \"Anvisa\")\n\nstatusAutorizacao (Órgão: \"Capitania\")\n\nstatusOperacao (Órgão: \"Terminal\")\n\nSe qualquer um desses campos contiver um valor da lista de status negativos, o navio é considerado um ponto crítico. Agrupe todas as pendências encontradas para este navio em sua lista pontosCriticos. O \"detalhe\" da pendência deve vir dos campos observacoes, pendencias, inconformidades, motivoRecusa ou, se estes forem nulos, do próprio status.\n\nCálculo do ETA Preditivo (Para Pontos Críticos):\n\nPara cada navio na lista pontosCriticos, adicione os seguintes campos:\na.  dataPrevisaoChegadaOriginal: Use o valor do campo dataPrevisaoChegada do próprio objeto do navio. Se for nulo ou não existir, o valor deve ser null.\nb.  atrasoPreditivoHoras: Inicie com 0. Verifique a lista de pendências do navio:\n* Se houver uma pendência onde orgao é \"Receita-Federal\" e status é \"pendente\" ou \"bloqueado\", some 4. Adicione o campo \"impactoHoras\": 4 a essa pendência.\n* Se houver uma pendência onde orgao é \"Anvisa\" e status é \"pendente\" ou \"rejeitado\", some 2. Adicione o campo \"impactoHoras\": 2 a essa pendência.\nc.  previsaoChegada: Se dataPrevisaoChegadaOriginal for uma data válida, some o atrasoPreditivoHoras para obter o novo horário em formato ISO. Se não, este campo deve ser null.\nd.  situacao: Se qualquer pendência do navio tiver um status cancelado, bloqueado ou negado, preencha este campo com \"Operação Cancelada/Bloqueada\" e defina atrasoPreditivoHoras e previsaoChegada como null. Caso contrário, o campo deve ser null.\n\nPróximas Operações:\n\nFiltre o array de entrada para encontrar todos os navios onde statusOperacao seja chegada_confirmada.\n\nPara cada um, crie um objeto com identificadorNavio e dataPrevisaoChegadaOriginal (usando o valor de dataPrevisaoChegada) e adicione à lista chegadasConfirmadas.\n\nSumário e Notificação:\n\nsumarioExecutivo: Crie um parágrafo baseado estritamente nos dados calculados. Mencione o número total de pontos críticos, destaque os navios com atrasos preditivos e seus respectivos tempos, e cite os casos de bloqueio/cancelamento.\n\npush_notification: Crie uma frase curta. Se houver pontos críticos, diga: \"Alerta: X navios com pendências críticas.\". Se não houver, diga: \"Operação normal: Nenhuma pendência crítica identificada.\".\n\n\n# FORMATO DA SAÍDA\nSua resposta deve ser apenas o objeto JSON final, sem nenhum texto adicional. Todos os campos listados abaixo são obrigatórios.\n\nJSON\n\n{\n  \"relatorioInfo\": {\n    \"titulo\": \"Relatório Preditivo de Situação Operacional\",\n    \"dataGeracao\": \"${dataAtual}\",\n    \"versao\": \"1.2-unificado\"\n  },\n  \"visaoGeral\": {\n    \"totalOperacoesTerminal\": 0,\n    \"status\": {}\n  },\n  \"pontosCriticos\": [\n    {\n      \"identificadorNavio\": \"string\",\n      \"dataPrevisaoChegadaOriginal\": \"string (formato ISO) ou null\",\n      \"atrasoPreditivoHoras\": \"integer ou null\",\n      \"previsaoChegada\": \"string (formato ISO) ou null\",\n      \"situacao\": \"string ou null\",\n      \"pendencias\": [\n        {\n          \"orgao\": \"string\",\n          \"status\": \"string\",\n          \"detalhe\": \"string\",\n          \"impactoHoras\": \"integer ou null\"\n        }\n      ]\n    }\n  ],\n  \"proximasOperacoes\": {\n    \"chegadasConfirmadas\": []\n  },\n  \"sumarioExecutivo\": \"string\",\n  \"push_notification\": \"string\"\n}\n# TAREFA\nExecute as regras de processamento no JSON de entrada abaixo e gere o objeto JSON de saída.`;\n\nconst dataObject = items[0].json;\n\n\nconst dataString = JSON.stringify(dataObject, null, 2);\n\nconst finalObject = {\n  chatInput: ` \\n  ${BuinessPromptLogic} \\n ${dataString}`,\n};\n\nreturn finalObject;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        336
+      ],
+      "id": "95ce349f-5c1c-4f8e-9331-1a08853ae357",
+      "name": "Logica do negócio e retorno para a IA"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega o item de entrada.\nconst inputItem = $input.first().json;\n\n// Etapa 1: Acessar a propriedade correta ('output') para obter a string bruta.\nconst rawOutputString = inputItem.output;\n\n/*\n  Etapa 2: Limpar a string.\n  - Remove o \"```json\\n\" do começo.\n  - Remove o \"\\n```\" do final.\n  - .trim() remove espaços em branco extras, por segurança.\n*/\nconst cleanedJsonString = rawOutputString\n  .replace(\"```json\\n\", \"\")\n  .replace(\"\\n```\", \"\")\n  .trim();\n\n// Etapa 3: Agora que a string está limpa, fazer o parse.\nconst reportDataObject = JSON.parse(cleanedJsonString);\n\n// Etapa 4: Retornar o objeto JavaScript pronto para ser usado.\nreturn reportDataObject;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        336
+      ],
+      "id": "786dc567-7505-46b8-99f6-108e9bfaf782",
+      "name": "Conversão de dados"
+    },
+    {
+      "parameters": {
+        "jsCode": "// =================================================================\n// FUNÇÕES AUXILIARES PARA GERAR SEÇÕES DINÂMICAS DO HTML\n// =================================================================\n\n/**\n * Gera o HTML para a seção de Pontos Críticos.\n * Lida com o caso de haver ou não pendências.\n */\nfunction gerarHtmlPontosCriticos(pontosCriticosArray) {\n  if (!pontosCriticosArray || pontosCriticosArray.length === 0) {\n    // Cenário POSITIVO: Nenhum ponto crítico\n    return `\n      <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"border-collapse: collapse; background-color: #dff0d8; border-left: 4px solid #3c763d;\">\n        <tr>\n          <td style=\"padding: 20px;\">\n            <p style=\"margin: 0; font-size: 16px; color: #3c763d; font-weight: bold;\">Nenhum ponto crítico identificado.</p>\n            <p style=\"margin: 5px 0 0; font-size: 14px; color: #3c763d;\">Todas as operações estão fluindo normalmente.</p>\n          </td>\n        </tr>\n      </table>\n    `;\n  }\n\n  // Cenário de ALERTA: Monta um card para cada navio com problema\n  const cardsHtml = pontosCriticosArray.map(ponto => {\n    const isCritical = ponto.pendencias.some(p => ['bloqueado', 'cancelado', 'rejeitado'].includes(p.status));\n    const headerColor = isCritical ? '#c62828' : '#ff8f00';\n    const pendenciasRows = ponto.pendencias.map(pend => `\n      <tr>\n        <td style=\"padding: 10px; border-top: 1px solid #eee; font-size: 14px;\">${pend.orgao}</td>\n        <td style=\"padding: 10px; border-top: 1px solid #eee; font-weight: bold; font-size: 14px; color: ${headerColor}; text-transform: capitalize;\">${pend.status.replace('_', ' ')}</td>\n        <td style=\"padding: 10px; border-top: 1px solid #eee; font-size: 14px;\">${pend.detalhe}</td>\n      </tr>\n    `).join('');\n\n    return `\n      <div style=\"border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #ddd;\">\n          <div style=\"padding: 15px 20px; color: #fff; font-weight: 700; font-size: 1.2em; background-color: ${headerColor}; border-top-left-radius: 8px; border-top-right-radius: 8px;\">\n              NAVIO: ${ponto.identificadorNavio}\n          </div>\n          <div style=\"padding: 15px; background: #fff;\">\n              <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n                  ${pendenciasRows}\n              </table>\n          </div>\n      </div>\n    `;\n  }).join('');\n  return cardsHtml;\n}\n\n/**\n * Gera o HTML para a seção de Próximas Operações.\n */\nfunction gerarHtmlProximasOperacoes(proximasOperacoesObj) {\n  if (!proximasOperacoesObj || !proximasOperacoesObj.chegadasConfirmadas || proximasOperacoesObj.chegadasConfirmadas.length === 0) {\n    return '<p style=\"font-size: 15px; color: #555;\">Nenhuma próxima operação agendada nos dados atuais.</p>';\n  }\n\n  const rows = proximasOperacoesObj.chegadasConfirmadas.map(op => `\n    <tr>\n      <td style=\"padding: 12px; border-top: 1px solid #dddddd; font-size: 15px; color: #555;\">${op.identificadorNavio}</td>\n      <td style=\"padding: 12px; border-top: 1px solid #dddddd; font-size: 15px; color: #555;\">${op.dataPrevisaoChegadaOriginal}</td>\n    </tr>\n  `).join('');\n\n  return `\n    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"border-collapse: collapse; border: 1px solid #dddddd;\">\n      <thead>\n        <tr style=\"background-color: #f2f2f2;\">\n          <th style=\"padding: 12px; text-align: left; font-size: 14px; color: #333;\">Identificador do Navio</th>\n          <th style=\"padding: 12px; text-align: left; font-size: 14px; color: #333;\">Data Prevista da Chegada</th>\n        </tr>\n      </thead>\n      <tbody>${rows}</tbody>\n    </table>\n  `;\n}\n\n/**\n * Gera o HTML para a tabela de Visão Geral.\n */\nfunction gerarHtmlVisaoGeral(visaoGeralObj) {\n  if (!visaoGeralObj || !visaoGeralObj.status) return '';\n  \n  let rowsHtml = '';\n  for (const [key, value] of Object.entries(visaoGeralObj.status)) {\n      rowsHtml += `\n           <tr>\n              <td style=\"padding: 8px; font-size: 14px; color: #333; border-bottom: 1px solid #eee; text-transform: capitalize;\">${key.replace(/_/g, ' ')}:</td>\n              <td style=\"padding: 8px; font-size: 14px; color: #333; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;\">${value}</td>\n          </tr>\n      `;\n  }\n  return `<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"border-collapse: collapse;\">${rowsHtml}</table>`;\n}\n\n\n// =================================================================\n// LÓGICA PRINCIPAL DO NÓ \"CODE\"\n// =================================================================\n\nconst allItems = $input.all();\nlet reportsHtml = '';\n\n// Itera sobre cada item/relatório recebido do n8n\nfor (const item of allItems) {\n  const reportData = item.json;\n\n  // Chama as funções auxiliares para construir as seções dinâmicas\n  const pontosCriticosHtml = gerarHtmlPontosCriticos(reportData.pontosCriticos);\n  const proximasOperacoesHtml = gerarHtmlProximasOperacoes(reportData.proximasOperacoes);\n  const visaoGeralHtml = gerarHtmlVisaoGeral(reportData.visaoGeral);\n\n  // Concatena o HTML de um relatório completo\n  reportsHtml += `\n    <table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" style=\"border-collapse: collapse; background-color: #ffffff; border: 1px solid #dddddd; margin-bottom: 25px;\">\n        <tr>\n            <td align=\"center\" style=\"padding: 30px 20px; background-color: #1a237e; color: #ffffff;\">\n                <h1 style=\"margin: 0; font-size: 24px; font-weight: bold;\">${reportData.relatorioInfo.titulo}</h1>\n                <p style=\"margin: 5px 0 0; font-size: 14px;\">Gerado em: ${reportData.relatorioInfo.dataGeracao}</p>\n            </td>\n        </tr>\n        <tr>\n            <td style=\"padding: 30px 30px 20px 30px;\">\n                <h2 style=\"font-size: 20px; color: #1a237e; margin-top: 0;\">Sumário Executivo</h2>\n                <p style=\"margin: 0; font-size: 16px; line-height: 1.6; color: #333333;\">${reportData.sumarioExecutivo}</p>\n            </td>\n        </tr>\n        <tr>\n            <td style=\"padding: 0 30px 30px 30px;\">\n                 <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"border-collapse: collapse; background-color: #e8eaf6; border-left: 4px solid #3f51b5;\">\n                    <tr>\n                        <td style=\"padding: 15px 20px;\">\n                            <p style=\"margin: 0; font-size: 15px; color: #1a237e; font-weight: bold;\">Notificação: ${reportData.push_notification}</p>\n                        </td>\n                    </tr>\n                 </table>\n            </td>\n        </tr>\n        <tr>\n            <td style=\"padding: 0 30px 20px 30px;\">\n                <h2 style=\"font-size: 20px; color: #1a237e; margin-top: 0;\">Pontos Críticos</h2>\n                ${pontosCriticosHtml}\n            </td>\n        </tr>\n        <tr>\n            <td style=\"padding: 10px 30px 20px 30px;\">\n                <h2 style=\"font-size: 20px; color: #1a237e; margin-top: 0;\">Próximas Operações Agendadas</h2>\n                ${proximasOperacoesHtml}\n            </td>\n        </tr>\n        <tr>\n            <td style=\"padding: 10px 30px 30px 30px;\">\n                <h2 style=\"font-size: 20px; color: #1a237e; margin-top: 0;\">Visão Geral do Terminal</h2>\n                ${visaoGeralHtml}\n            </td>\n        </tr>\n    </table>\n  `;\n}\n\n// Monta o documento HTML final\nconst finalHtml = `\n<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Relatório de Situação Operacional</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f4f7f9; font-family: Arial, Helvetica, sans-serif;\">\n    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n        <tr>\n            <td style=\"padding: 20px 0;\">\n                ${reportsHtml} </td>\n        </tr>\n        <tr>\n            <td align=\"center\" style=\"padding: 20px; color: #888888; font-size: 12px;\">\n                <p style=\"margin: 0;\">Este é um relatório automático gerado pelo CascadeSightAI.</p>\n            </td>\n        </tr>\n    </table>\n</body>\n</html>`;\n\n// Retorna o HTML completo para ser usado no próximo nó (ex: Send Email)\nreturn {\n  json: {\n    html: finalHtml,\n    push_notification: $input.first().json.push_notification\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        240
+      ],
+      "id": "3eb39ac3-1fa9-49ab-8a92-a332af1fb3fd",
+      "name": "Conversão para o HTML"
+    },
+    {
+      "parameters": {
+        "sendTo": "=alisson.r.santos92@gmail.com,ronald.evangelista@aluno.ifsp.edu.br\n",
+        "subject": "={{ $json.push_notification }}",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1216,
+        240
+      ],
+      "id": "597fb083-67ae-4aad-b230-5f85ff46b57b",
+      "name": "Envio do Email",
+      "webhookId": "a3ac24d8-7f4a-440d-b212-3881cacf3fd6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Qm3UsXyf28rv7x8E",
+          "name": "Gmail account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn {\n  data: items\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        336
+      ],
+      "id": "1ec02407-f91e-4116-8f2d-c972834bf67b",
+      "name": "Formatação"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        992,
+        432
+      ],
+      "id": "c0391893-e90b-4709-93c1-845f6535fb9d",
+      "name": "API RESPOSTA"
+    },
+    {
+      "parameters": {
+        "path": "45e479f2-e7ad-4337-85b7-14e027e51de5",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1152,
+        432
+      ],
+      "id": "bebe2b6b-1892-488f-9629-24bd26570dce",
+      "name": "TRIGGER API",
+      "webhookId": "45e479f2-e7ad-4337-85b7-14e027e51de5"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1152,
+        240
+      ],
+      "id": "96fec880-19d0-4ae1-9c28-ad3e52205997",
+      "name": "BUSCA PARA NOTIFICAÇÃO"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Conversão de dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CaptaniaDosPortos": {
+      "main": [
+        [
+          {
+            "node": "Combina os dados do navio nas APIs",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Anvisa": {
+      "main": [
+        [
+          {
+            "node": "Combina os dados do navio nas APIs",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "ReceitaFederal": {
+      "main": [
+        [
+          {
+            "node": "Combina os dados do navio nas APIs",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AgenciaMaritima": {
+      "main": [
+        [
+          {
+            "node": "Combina os dados do navio nas APIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armador": {
+      "main": [
+        [
+          {
+            "node": "Split resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split resultado": {
+      "main": [
+        [
+          {
+            "node": "AgenciaMaritima",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ReceitaFederal",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Anvisa",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "CaptaniaDosPortos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Combina os dados do navio nas APIs",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Combina os dados do navio nas APIs": {
+      "main": [
+        [
+          {
+            "node": "Formatação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logica do negócio e retorno para a IA": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversão de dados": {
+      "main": [
+        [
+          {
+            "node": "Conversão para o HTML",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API RESPOSTA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversão para o HTML": {
+      "main": [
+        [
+          {
+            "node": "Envio do Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatação": {
+      "main": [
+        [
+          {
+            "node": "Logica do negócio e retorno para a IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TRIGGER API": {
+      "main": [
+        [
+          {
+            "node": "Armador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BUSCA PARA NOTIFICAÇÃO": {
+      "main": [
+        [
+          {
+            "node": "Armador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "87255548-9d50-4e58-a0b7-0327366c184e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21b80bbe30a7f15da69548d8c5b1a235d4d21f49c50c6d7cd7bab88b61c1e138"
+  },
+  "id": "piA6QGyJutJqFJLn",
+  "tags": []
+}
