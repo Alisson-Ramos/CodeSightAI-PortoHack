@@ -1,3 +1,5 @@
+![Projeto](https://i.imgur.com/jyWRPz9.jpeg)
+
 # Relatório Preditivo de Operações Portuárias - CodeSightIA
 
 Este é um workflow avançado do n8n projetado para automatizar a coleta, análise e notificação do status operacional de navios em um terminal portuário. O sistema agrega dados de múltiplas fontes, utiliza um agente de Inteligência Artificial para aplicar uma lógica de negócios complexa e gera um relatório preditivo detalhado que é enviado por e-mail e disponibilizado via API.
